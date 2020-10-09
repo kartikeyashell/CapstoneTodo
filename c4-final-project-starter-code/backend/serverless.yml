@@ -2,10 +2,12 @@ service:
   name: serverless-todo-app
 
 plugins:
+  - serverless-reqvalidator-plugin
   - serverless-webpack
   - serverless-iam-roles-per-function
   - serverless-aws-documentation
   - serverless-plugin-tracing
+
 provider:
   name: aws
   runtime: nodejs12.x
@@ -19,7 +21,17 @@ provider:
     TODO_S3_BUCKET: serverless-todo-kartikeyapophali-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
-  tracing: true
+  tracing:
+    lambda: true
+    apiGateway: true
+    # Attention for indentation here
+    iamRoleStatements:            # Permissions here or under every function to trace
+      - Effect: 'Allow'           # xray tracing permissions
+        Action:
+          - 'xray:PutTraceSegments'             # Trace Segments
+          - 'xray:PutTelemetryRecords'          # Telemetry
+        Resource:
+          - '*'
 
 custom:
   documentation:
@@ -28,6 +40,13 @@ custom:
         version: v1.0.0
         title: ToDo API
         description: Serverless application for Todos
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(src/models/create-todo.json)}
+      - name: UpdateTodoRequest
+        contentType: application/json
+        schema: ${file(src/models/update-todo.json)}
 
 functions:
 
@@ -75,6 +94,12 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new todo item
+            description: Create a new todo item
+            requestModels:
+              'application/json': CreateTodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -102,6 +127,12 @@ functions:
           path: todos/{todoId}
           cors: true
           authorizer: Auth
+          reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Update a todo item
+            description: Update a todo item
+            requestModels:
+              'application/json': UpdateTodoRequest
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -242,3 +273,12 @@ resources:
               - s3:GetObject
               Resource: 'arn:aws:s3:::${self:provider.environment.TODO_S3_BUCKET}/*'
         Bucket: !Ref AttachmentsBucket
+    
+    RequestBodyValidator:
+      Type: AWS::ApiGateway::RequestValidator
+      Properties:
+        Name: 'request-body-validator'
+        RestApiId:
+          Ref: ApiGatewayRestApi
+        ValidateRequestBody: true
+        ValidateRequestParameters: false
