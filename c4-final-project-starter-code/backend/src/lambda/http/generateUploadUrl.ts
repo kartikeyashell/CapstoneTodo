@@ -11,8 +11,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
         const todoId = event.pathParameters.todoId
 
         logger.info('Getting a presigned URL to upload file for a Todo item...')
-      
-        // TODO: Return a presigned URL to upload a file for a TODO item with the provided id
+
         const uploadUrl = getAttachmentUploadUrl(todoId)
       
         return {
