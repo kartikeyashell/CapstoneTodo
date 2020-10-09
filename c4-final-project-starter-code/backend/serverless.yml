@@ -1,5 +1,5 @@
 service:
-  name: serverless-todo-app
+  name: capstone-serverless-todo-app
 
 plugins:
   - serverless-reqvalidator-plugin
@@ -7,6 +7,9 @@ plugins:
   - serverless-iam-roles-per-function
   - serverless-aws-documentation
   - serverless-plugin-tracing
+
+package:
+  individually: true
 
 provider:
   name: aws
@@ -16,9 +19,9 @@ provider:
   region: ${opt:region, 'us-east-1'}
 
   environment:
-    TODO_TABLE: Todo-Table-${self:provider.stage}
-    INDEX_NAME: UserIdTodoIdIndex
-    TODO_S3_BUCKET: serverless-todo-kartikeyapophali-images-${self:provider.stage}
+    TODO_TABLE: Capstone-Todo-Table-${self:provider.stage}
+    INDEX_NAME: CapstoneUserIdTodoIdIndex
+    TODO_S3_BUCKET: serverless-todo-capstone-kartikeyapophali-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   tracing:

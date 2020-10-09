@@ -3,9 +3,11 @@ import * as AWS from 'aws-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 import { TodoItem } from '../models/TodoItem'
+import { createLogger } from '../utils/logger'
 
 const AWSXRay = require('aws-xray-sdk');
 const XAWS = AWSXRay.captureAWS(AWS)
+const logger = createLogger('todoAccess')
 
 export class TodoAccess {
 
@@ -23,6 +25,8 @@ export class TodoAccess {
 
     async getTodosForUser(userId: string): Promise<TodoItem[]> {
 
+      logger.info('Fetching todo items for %', userId)
+      
       const result = await this.docClient.query({
           TableName: this.todoTable,
           IndexName: this.todoIndex,
@@ -38,6 +42,8 @@ export class TodoAccess {
     }
 
     async createTodo(todo: TodoItem): Promise<TodoItem> {
+
+      logger.info('Creating a new todo item...')
       
       await this.docClient.put({
         TableName: this.todoTable,
@@ -49,6 +55,8 @@ export class TodoAccess {
 
     async updateTodo(userId: string, todoId: string, updatedTodo: UpdateTodoRequest): Promise<void> {
 
+      logger.info('Updating existing todo item % for user %', todoId, userId)
+      
       await this.docClient.update({
         TableName: this.todoTable,
         Key: {
@@ -67,6 +75,8 @@ export class TodoAccess {
     }
 
     async deleteTodo(userId: string, todoId: string): Promise<void> {
+
+      logger.info('Deleting todo item % for user %', todoId, userId)
 
       await this.docClient.delete({
         TableName: this.todoTable,
